@@ -16,8 +16,10 @@ class _ConvBlock(torch.nn.Sequential):
     """
     def __init__(self, in_channels, out_channels, **kwargs):
         super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
+        in_channels = torch.tensor(in_channels, dtype=torch.int)
+        out_channels = torch.tensor(out_channels, dtype=torch.int)
+        self.register_buffer('in_channels', in_channels)
+        self.register_buffer('out_channels', out_channels)
         self.add_module('conv', self._create_conv())
         self.add_module('norm', self._create_norm())
         self.add_module('activ', create_activ())
@@ -57,9 +59,12 @@ class _ContractingBlock(torch.nn.Sequential):
     """
     def __init__(self, in_channels, out_channels, inter_channels):
         super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.inter_channels = inter_channels
+        in_channels = torch.tensor(in_channels, dtype=torch.int)
+        out_channels = torch.tensor(out_channels, dtype=torch.int)
+        inter_channels = torch.tensor(inter_channels, dtype=torch.int)
+        self.register_buffer('in_channels', in_channels)
+        self.register_buffer('out_channels', out_channels)
+        self.register_buffer('inter_channels', inter_channels)
         self.add_module('conv1', self._create_conv1())
         self.add_module('conv2', self._create_conv2())
 
@@ -99,9 +104,12 @@ class _ExpandingBlock(torch.nn.Module):
     """
     def __init__(self, in_channels, shortcut_channels, out_channels):
         super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.shortcut_channels = shortcut_channels
+        in_channels = torch.tensor(in_channels, dtype=torch.int)
+        out_channels = torch.tensor(out_channels, dtype=torch.int)
+        shortcut_channels = torch.tensor(shortcut_channels, dtype=torch.int)
+        self.register_buffer('in_channels', in_channels)
+        self.register_buffer('out_channels', out_channels)
+        self.register_buffer('shortcut_channels', shortcut_channels)
         self.conv1 = self._create_conv1()
         self.conv2 = self._create_conv2()
 
@@ -137,8 +145,10 @@ class _TransUpBlock(torch.nn.Sequential):
     """
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
+        in_channels = torch.tensor(in_channels, dtype=torch.int)
+        out_channels = torch.tensor(out_channels, dtype=torch.int)
+        self.register_buffer('in_channels', in_channels)
+        self.register_buffer('out_channels', out_channels)
         self.add_module('conv', self._create_conv())
         self.add_module('up', create_two_upsample())
 

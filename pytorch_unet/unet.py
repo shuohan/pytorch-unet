@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
   
-import numpy as np
 import torch
 import torch.nn.functional as F
 import warnings
@@ -26,11 +25,19 @@ class _UNet(torch.nn.Module):
     def __init__(self, in_channels, out_channels, num_trans_down,
                  first_channels, max_channels=1024, output_levels=0):
         super().__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.num_trans_down = num_trans_down
-        self.max_channels = max_channels
-        self.output_levels = self._init_output_levels(output_levels)
+
+        in_channels = torch.tensor(in_channels, dtype=torch.int)
+        self.register_buffer('in_channels', in_channels)
+        out_channels = torch.tensor(out_channels, dtype=torch.int)
+        self.register_buffer('out_channels', out_channels)
+        num_trans_down = torch.tensor(num_trans_down, dtype=torch.int)
+        self.register_buffer('num_trans_down', num_trans_down)
+        max_channels = torch.tensor(max_channels, dtype=torch.int)
+        self.register_buffer('max_channels', max_channels)
+        first_channels = torch.tensor(first_channels, dtype=torch.int)
+        self.register_buffer('first_channels', first_channels)
+        output_levels = self._convert_output_levels(output_levels)
+        self.register_buffer('output_levels', output_levels)
 
         # encoding/contracting
         inter_channels = (in_channels + first_channels) // 2
@@ -61,14 +68,16 @@ class _UNet(torch.nn.Module):
                 setattr(self, 'out%d'%i, out)
             in_channels = out_channels
 
-    def _init_output_levels(self, levels):
+    def _convert_output_levels(self, levels):
         levels = levels if isinstance(levels, Iterable) else [levels]
-        levels = np.sort(levels)
+        levels = torch.sort(torch.tensor(levels, dtype=torch.int))[0]
         if levels[-1] > self.num_trans_down:
             message = ('Output levels should be less or equal to the number '
                        'of transition down.')
             warnings.warn(message, RuntimeWarning, stacklevel=3)
-        return levels[levels<=self.num_trans_down].tolist()
+        levels = levels[levels<=self.num_trans_down]
+        print(levels)
+        return levels
 
     def _calc_out_channels(self, in_channels):
         """Calculate the number of output chennals of a block."""
